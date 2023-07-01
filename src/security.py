@@ -9,6 +9,7 @@ from src.models.base import HTTPBaseException, TokenData, Token
 from src.models.users import UserInDb
 from src.config import settings
 import bcrypt
+import json
 
 class Security:
     class Unauthorized(HTTPBaseException):
@@ -23,16 +24,15 @@ class Security:
         return bcrypt.gensalt().decode()
 
     @staticmethod
-    def hash_password(plain_password: str, salt: str) -> str:
-        return Security.pwd_context.hash(plain_password + salt)
+    def hash_password(plain_password: str) -> str:
+        return Security.pwd_context.hash(plain_password)
 
     @staticmethod
     def verify_password(
         plain_password: str,
         hashed_password: str,
-        salt: str,
     ) -> bool:
-        return Security.pwd_context.verify(plain_password + salt, hashed_password)
+        return Security.pwd_context.verify(plain_password, hashed_password)
     
     @staticmethod
     def generate_user_token(
@@ -40,12 +40,12 @@ class Security:
     ) -> str:
 
         token_data = TokenData(
-            id=user.id,
+            id=str(user.id),
             username=user.username,
         )
 
         token = jwt.encode(
-            claims=token_data.dict(),
+            claims=json.loads(token_data.json()),
             key=settings.JWT_SECRET_KEY,
             algorithm="HS256",
         )

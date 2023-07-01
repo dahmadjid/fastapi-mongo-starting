@@ -1,7 +1,8 @@
 from pydantic import BaseSettings, SecretStr
 
 class Settings(BaseSettings):
-    MONGO_DB_URI: str
+    MONGO_USER: str
+    MONGO_PASS: str
     JWT_SECRET_KEY: str
     
     class Config:

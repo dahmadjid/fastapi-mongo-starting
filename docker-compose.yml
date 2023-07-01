@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongo_db:
+    image: mongo:latest
+    container_name: mongo_db
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER?}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS?}
+    volumes:
+      - "mongo_data:/data/db"
+    networks:
+      - internal_network
+      
+  backend:
+    image: ${PROJECT_NAME?}:latest
+    build: .
+    environment:
+      PROJECT_NAME: ${PROJECT_NAME?}
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      MONGO_USER: ${MONGO_USER?}
+      MONGO_PASS: ${MONGO_PASS?}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY?}
+      WATCHFILES_FORCE_POLLING: true
+    depends_on:
+      - mongo_db
+    networks:
+      - internal_network
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  mongo_data:
+    name: mongo_data
+
+networks:
+  internal_network:
+    name: internal_network

@@ -2,7 +2,7 @@ from src.config import settings
 from fastapi import status
 from motor import motor_asyncio
 import asyncio
-
+from pydantic import MongoDsn
 from src.models.users import UserBase, UserInDb
 from src.models.base import PyObjectId, HTTPBaseException
 
@@ -23,16 +23,20 @@ class UsersCollection:
     
     @staticmethod
     def init_dbconn():
-        db_client = motor_asyncio.AsyncIOMotorClient(
-            settings.MONGO_DB_URI,
-            io_loop=asyncio.get_running_loop(),
+        db_uri = MongoDsn.build(
+            scheme="mongodb",
+            user=settings.MONGO_USER,
+            password=settings.MONGO_PASS,
+            host="mongo_db",
+            port="27017",
+            path=f"/mongo_db?authSource=admin",
         )
+        db_client = motor_asyncio.AsyncIOMotorClient(db_uri, io_loop=asyncio.get_running_loop())
         UsersCollection.coll = db_client["storage"]["users"]
     
     @staticmethod
-    async def create(new_user: UserBase, hashed_password: str, salt: str) -> UserInDb:
+    async def create(new_user: UserBase, hashed_password: str) -> UserInDb:
         user = UserInDb(
-            salt=salt,
             hashed_password=hashed_password,
             **new_user.dict(),
         )

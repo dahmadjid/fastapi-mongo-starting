@@ -5,7 +5,9 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
 
-class UserInDb(UserBase, Document):
+class UserPublic(UserBase, Document):
+    pass
+
+class UserInDb(UserPublic):
     hashed_password: str
-    salt: str
       
